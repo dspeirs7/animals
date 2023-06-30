@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  client:
+    ports:
+      - '9090:80'
+
+  backend:
+    environment:
+      ENV: 'production'
+    ports:
+      - '8080:8080'

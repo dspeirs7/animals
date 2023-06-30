@@ -1,0 +1,146 @@
+<div *ngIf="chicken() as chicken" class="container">
+  <app-chicken-card [chicken]="chicken" />
+  <div class="image-upload" *ngIf="isLoggedIn$ | async">
+    <button mat-raised-button (click)="imageUpload.click()">
+      {{ chicken.imageUrl ? "Update" : "Add" }} Photo
+    </button>
+    <input
+      type="file"
+      accept="image/*"
+      class="file-input"
+      #imageUpload
+      (change)="onFileSelected(chicken.id, $event)"
+    />
+    <mat-progress-bar
+      mode="determinate"
+      [value]="uploadProgress"
+      *ngIf="uploadProgress"
+    />
+  </div>
+  <div class="vaccinations">
+    <h2>Vaccinations</h2>
+    <mat-table
+      [dataSource]="getDataSource(chicken.vaccinations)"
+      class="mat-elevation-z3"
+      matSort
+      *ngIf="chicken.vaccinations?.length"
+    >
+      <ng-container matColumnDef="name">
+        <mat-header-cell *matHeaderCellDef mat-sort-header
+          >Name</mat-header-cell
+        >
+        <mat-cell *matCellDef="let vaccination">{{
+          vaccination.name
+        }}</mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="dateGiven">
+        <mat-header-cell *matHeaderCellDef mat-sort-header
+          >Date Given</mat-header-cell
+        >
+        <mat-cell *matCellDef="let vaccination">
+          {{ vaccination.dateGiven | date }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="dateNeeded">
+        <mat-header-cell *matHeaderCellDef mat-sort-header
+          >Date Needed</mat-header-cell
+        >
+        <mat-cell *matCellDef="let vaccination">
+          {{ vaccination.dateNeeded | date }}
+        </mat-cell>
+      </ng-container>
+
+      <ng-container matColumnDef="delete">
+        <mat-header-cell *matHeaderCellDef class="text-right"
+          >Delete</mat-header-cell
+        >
+        <mat-cell
+          *matCellDef="let vaccination; let index = index"
+          class="text-right"
+        >
+          <button
+            *ngIf="isLoggedIn$ | async"
+            mat-icon-button
+            color="primary"
+            (click)="deleteVaccination(chicken, vaccination)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-cell>
+      </ng-container>
+
+      <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+      <mat-row *matRowDef="let row; columns: displayedColumns"></mat-row>
+    </mat-table>
+    <form [formGroup]="vaccinationsForm" class="vaccinations-form">
+      <div formArrayName="vaccinations" class="vaccinations-form">
+        <div>
+          <button
+            mat-raised-button
+            (click)="addVaccination()"
+            *ngIf="isLoggedIn$ | async"
+          >
+            Add Vaccination
+          </button>
+        </div>
+        <div *ngFor="let vaccination of vaccinations.controls; let i = index">
+          <div [formGroupName]="i" class="form">
+            <mat-form-field>
+              <mat-label>Name</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Date Given</mat-label>
+              <input
+                matInput
+                [max]="today"
+                [matDatepicker]="dateGivenpicker"
+                formControlName="dateGiven"
+              />
+              <mat-hint>MM/DD/YYYY</mat-hint>
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="dateGivenpicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #dateGivenpicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Date Needed</mat-label>
+              <input
+                matInput
+                [min]="today"
+                [matDatepicker]="dateNeededPicker"
+                formControlName="dateNeeded"
+              />
+              <mat-hint>MM/DD/YYYY</mat-hint>
+              <mat-datepicker-toggle
+                matIconSuffix
+                [for]="dateNeededPicker"
+              ></mat-datepicker-toggle>
+              <mat-datepicker #dateNeededPicker></mat-datepicker>
+            </mat-form-field>
+            <button
+              *ngIf="isLoggedIn$ | async"
+              mat-icon-button
+              color="primary"
+              (click)="removeVaccination(i)"
+            >
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <button
+          mat-raised-button
+          (click)="addVaccinations(chicken)"
+          *ngIf="(isLoggedIn$ | async) && vaccinations.controls.length > 0"
+        >
+          Save Vaccinations
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

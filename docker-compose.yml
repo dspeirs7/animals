@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dspeirs/app:latest
+    volumes:
+      - api_data:/app/images
+    depends_on:
+      - chicken-db
+    links:
+      - chicken-db
+    secrets:
+      - db_string
+
+  chicken-db:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/db_user
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/db_password
+      MONGO_INITDB_DATABASE: 'chickens'
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    secrets:
+      - db_user
+      - db_password
+
+volumes:
+  mongo_data:
+  api_data:
+
+secrets:
+  db_user:
+    file: config/db_user
+  db_password:
+    file: config/db_password
+  db_string:
+    file: config/db_string

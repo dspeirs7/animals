@@ -1,0 +1,21 @@
+<div class="container">
+  <div class="header">
+    <h1>Here are our chickens!</h1>
+    <button
+      mat-fab
+      (click)="addChicken()"
+      class="right"
+      *ngIf="isLoggedIn$ | async"
+    >
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+  <div class="chicken-cards">
+    <app-chicken-card
+      *ngFor="let chicken of chickens()"
+      [chicken]="chicken"
+      (onDelete)="onDelete($event)"
+      [showActions]="true"
+    />
+  </div>
+</div>

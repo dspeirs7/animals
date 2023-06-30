@@ -1,0 +1,79 @@
+.container {
+  display: grid;
+  grid-template:
+    "card vaccines" auto
+    "picture vaccines" auto
+    / 400px 1fr;
+  gap: 1em;
+  padding: 2em;
+}
+
+app-chicken-card {
+  grid-area: card;
+}
+
+.image-upload {
+  grid-area: picture;
+}
+
+.vaccinations {
+  grid-area: vaccines;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+.vaccinations-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+.form {
+  display: flex;
+  gap: 1em;
+}
+
+mat-form-field {
+  flex: 1;
+}
+
+.file-input {
+  display: none;
+}
+
+.text-right {
+  text-align: right;
+}
+
+@media only screen and (max-width: 832px) {
+  .container {
+    padding: 1em;
+    grid-template:
+      "card" auto
+      "picture" auto
+      "vaccines" auto
+      / 1fr;
+  }
+
+  app-chicken-card {
+    margin-left: -0.5em;
+  }
+
+  mat-table {
+    margin-left: -0.5em;
+  }
+
+  .form {
+    flex-direction: column;
+    padding-bottom: 3em;
+
+    button {
+      align-self: flex-end;
+    }
+  }
+}

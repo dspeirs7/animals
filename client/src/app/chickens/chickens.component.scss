@@ -1,0 +1,43 @@
+.container {
+  padding: 2em;
+}
+
+.chicken-cards {
+  display: grid;
+  grid-template: auto / 1fr 1fr 1fr;
+  place-content: stretch;
+  gap: 1em;
+}
+
+.header {
+  display: flex;
+  width: 100%;
+  padding-bottom: 1em;
+}
+
+h1 {
+  display: flex;
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+.chicken-link {
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.text-right {
+  text-align: right;
+}
+
+@media only screen and (max-width: 832px) {
+  .container {
+    padding: 1em;
+  }
+
+  .chicken-cards {
+    grid-template: auto / 1fr;
+  }
+}

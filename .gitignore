@@ -1,0 +1,55 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+.env
+/backend/backend
+
+# C#
+bin/
+obj/
+dist/
+
+# Node
+client/node_modules
+client/npm-debug.log
+client/yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+client/.vscode/*
+!client/.vscode/settings.json
+!client/.vscode/tasks.json
+!client/.vscode/launch.json
+!client/.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+client/.angular/cache
+client/.sass-cache/
+client//connect.lock
+client//coverage
+client//libpeerconnection.log
+client/testem.log
+client//typings
+backend/images
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Env files
+.*.env
+
+config

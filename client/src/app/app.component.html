@@ -1,0 +1,13 @@
+<mat-toolbar color="primary">
+  <div routerLink="/chickens" class="brand">
+    <button mat-icon-button *ngIf="(url$ | async) !== '/chickens'">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <span>Chickens</span>
+  </div>
+  <span class="flex"></span>
+  <button mat-flat-button *ngIf="isLoggedIn$ | async" (click)="logout()">
+    Logout
+  </button>
+</mat-toolbar>
+<router-outlet></router-outlet>
