@@ -1,26 +1,39 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'chickens' },
+  { path: '', pathMatch: 'full', redirectTo: 'cats' },
   {
     path: 'login',
     loadComponent: () =>
       import('./login/login.component').then((mod) => mod.LoginComponent),
   },
   {
-    path: 'chickens',
+    path: 'cats',
+    data: { animalType: 1 },
     loadComponent: () =>
-      import('./chickens/chickens.component').then(
-        (mod) => mod.ChickensComponent
+      import('./animals/animals.component').then((mod) => mod.AnimalsComponent),
+  },
+  {
+    path: 'chickens',
+    data: { animalType: 2 },
+    loadComponent: () =>
+      import('./animals/animals.component').then((mod) => mod.AnimalsComponent),
+  },
+  {
+    path: 'dogs',
+    data: { animalType: 3 },
+    loadComponent: () =>
+      import('./animals/animals.component').then((mod) => mod.AnimalsComponent),
+  },
+  {
+    path: 'animal/:animalId',
+    loadComponent: () =>
+      import('./animals/animal/animal.component').then(
+        (mod) => mod.AnimalComponent
       ),
   },
   {
-    path: 'chickens/:chickenId',
-    loadComponent: () =>
-      import('./chicken/chicken.component').then((mod) => mod.ChickenComponent),
-  },
-  {
     path: '**',
-    redirectTo: 'chickens',
+    redirectTo: 'cats',
   },
 ];

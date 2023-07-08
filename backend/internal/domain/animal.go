@@ -6,21 +6,45 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Chicken struct {
+type Animal struct {
 	Id           primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name         string             `bson:"name,omitempty" json:"name,omitempty"`
 	Description  string             `bson:"description,omitempty" json:"description,omitempty"`
 	ImageUrl     string             `bson:"imageUrl,omitempty" json:"imageUrl,omitempty"`
-	Type         ChickenType        `bson:"type,omitempty" json:"type,omitempty"`
+	Type         AnimalType         `bson:"type,omitempty" json:"type,omitempty"`
+	Breed        AnimalBreed        `bson:"breed,omitempty" json:"breed,omitempty"`
 	Vaccinations []Vaccination      `bson:"vaccinations,omitempty" json:"vaccinations,omitempty"`
 }
 
-type ChickenType int
+type AnimalType int
 
 const (
-	Brahma        ChickenType = 1
-	BuffOrpington ChickenType = 2
+	CatType     AnimalType = 1
+	ChickenType AnimalType = 2
+	DogType     AnimalType = 3
 )
+
+type AnimalBreed int
+
+// type CatBreed int
+
+// const (
+// 	RussianBlue CatBreed = 1
+// )
+
+// type ChickenBreed int
+
+// const (
+// 	Brahma        ChickenBreed = 10
+// 	BuffOrpington ChickenBreed = 11
+// )
+
+// type DogBreed int
+
+// const (
+// 	Mix      DogBreed = 20
+// 	FoxHound DogBreed = 21
+// )
 
 type Vaccination struct {
 	Name       string             `bson:"name,omitempty" json:"name,omitempty"`
@@ -28,12 +52,13 @@ type Vaccination struct {
 	DateNeeded primitive.DateTime `bson:"dateNeeded,omitempty" json:"dateNeeded,omitEmpty"`
 }
 
-type ChickenRepository interface {
-	GetUser(ctx context.Context, username string) (*User, error)
-	GetAll(ctx context.Context) ([]*Chicken, error)
-	GetById(ctx context.Context, id string) (*Chicken, error)
-	Insert(ctx context.Context, chicken Chicken) (*Chicken, error)
-	Update(ctx context.Context, id string, chicken Chicken) error
+type AnimalRepository interface {
+	GetAllCats(ctx context.Context) ([]*Animal, error)
+	GetAllChickens(ctx context.Context) ([]*Animal, error)
+	GetAllDogs(ctx context.Context) ([]*Animal, error)
+	GetById(ctx context.Context, id string) (*Animal, error)
+	Insert(ctx context.Context, insert Animal) (*Animal, error)
+	Update(ctx context.Context, id string, update Animal) error
 	AddVaccinations(ctx context.Context, id string, vaccinations []Vaccination) error
 	DeleteVaccination(ctx context.Context, id string, vaccination Vaccination) error
 	Delete(ctx context.Context, id string) error

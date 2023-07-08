@@ -5,6 +5,7 @@ import {
   Input,
   OnInit,
   Output,
+  Signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -15,14 +16,13 @@ import {
   MatDialog,
   MatDialogModule,
 } from '@angular/material/dialog';
-import { Chicken } from '../chicken';
-import { EnvironmentPipe } from '../environment.pipe';
-import { ChickenService } from '../chicken.service';
-import { Observable } from 'rxjs';
-import { AuthService } from '../login/auth.service';
+import { EnvironmentPipe } from '../../environment.pipe';
+import { AuthService } from '../../login/auth.service';
+import { Animal, AnimalName } from 'src/app/models/animal';
+import { AnimalService } from '../animal.service';
 
 @Component({
-  selector: 'app-chicken-card',
+  selector: 'app-animal-card',
   standalone: true,
   imports: [
     CommonModule,
@@ -32,37 +32,38 @@ import { AuthService } from '../login/auth.service';
     MatDialogModule,
     EnvironmentPipe,
   ],
-  templateUrl: './chicken-card.component.html',
-  styleUrls: ['./chicken-card.component.scss'],
+  templateUrl: './animal-card.component.html',
+  styleUrls: ['./animal-card.component.scss'],
 })
-export class ChickenCardComponent implements OnInit {
-  @Input() chicken: Chicken;
+export class AnimalCardComponent {
+  @Input() animal: Animal;
+  @Input() type: AnimalName;
   @Input() showActions: boolean = false;
   @Output() onDelete = new EventEmitter<string>();
-  isLoggedIn$: Observable<boolean>;
+  isLoggedIn: Signal<boolean>;
 
   constructor(
     private authService: AuthService,
-    private chickenService: ChickenService,
+    private animalService: AnimalService,
     private matDialog: MatDialog
   ) {}
 
   ngOnInit(): void {
-    this.isLoggedIn$ = this.authService.isLoggedIn();
+    this.isLoggedIn = this.authService.isLoggedIn();
   }
 
-  deleteChicken(chicken: Chicken) {
-    const dialogRef = this.matDialog.open(DeleteChickenDialog, {
+  deleteAnimal(animal: Animal) {
+    const dialogRef = this.matDialog.open(DeleteAnimalDialog, {
       data: {
-        name: chicken.name,
-        id: chicken.id,
+        name: animal.name,
+        id: animal.id,
       },
     });
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
-        this.chickenService.deleteChicken(chicken.id).subscribe(() => {
-          this.onDelete.emit(chicken.id);
+        this.animalService.deleteAnimal(animal.id).subscribe(() => {
+          this.onDelete.emit(animal.id);
         });
       }
     });
@@ -75,7 +76,7 @@ interface DialogData {
 }
 
 @Component({
-  selector: 'app-delete-chicken-dialog',
+  selector: 'app-delete-animal-dialog',
   standalone: true,
   template: `
     <h2 mat-dialog-title>Confirm Delete</h2>
@@ -91,6 +92,6 @@ interface DialogData {
   `,
   imports: [MatDialogModule, MatButtonModule],
 })
-export class DeleteChickenDialog {
+export class DeleteAnimalDialog {
   constructor(@Inject(MAT_DIALOG_DATA) public data: DialogData) {}
 }

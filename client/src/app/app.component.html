@@ -1,12 +1,17 @@
 <mat-toolbar color="primary">
-  <div routerLink="/chickens" class="brand">
-    <button mat-icon-button *ngIf="(url$ | async) !== '/chickens'">
+  <div class="brand" (click)="goBack()">
+    <button mat-icon-button *ngIf="showBack()">
       <mat-icon>arrow_back</mat-icon>
     </button>
-    <span>Chickens</span>
+    <span>Animals</span>
+  </div>
+  <div class="buttons">
+    <button mat-button routerLink="/cats">Cats</button>
+    <button mat-button routerLink="/chickens">Chickens</button>
+    <button mat-button routerLink="/dogs">Dogs</button>
   </div>
   <span class="flex"></span>
-  <button mat-flat-button *ngIf="isLoggedIn$ | async" (click)="logout()">
+  <button mat-flat-button *ngIf="isLoggedIn()" (click)="logout()">
     Logout
   </button>
 </mat-toolbar>
