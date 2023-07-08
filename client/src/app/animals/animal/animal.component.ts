@@ -159,7 +159,11 @@ export class AnimalComponent implements OnInit {
       .addVaccinations(animal.id, this.vaccinations.value)
       .subscribe(() => {
         this.animal.mutate((animal) => {
-          animal.vaccinations.push(this.vaccinations.value);
+          if (animal.vaccinations?.length) {
+            animal.vaccinations.push(this.vaccinations.value);
+          } else {
+            animal.vaccinations = [this.vaccinations.value];
+          }
           this.vaccinations.clear();
         });
       });
