@@ -160,8 +160,8 @@ export class AnimalComponent implements OnInit {
       .subscribe(() => {
         this.animal.mutate((animal) => {
           animal.vaccinations.push(this.vaccinations.value);
+          this.vaccinations.clear();
         });
-        this.vaccinations.clear();
       });
   }
 

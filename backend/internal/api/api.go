@@ -11,7 +11,6 @@ import (
 	"github.com/dspeirs7/animals/internal/domain"
 	"github.com/dspeirs7/animals/internal/middleware"
 	"github.com/dspeirs7/animals/internal/repository"
-	"github.com/go-chi/chi"
 
 	// "github.com/go-chi/chi/v5"
 	// chim "github.com/go-chi/chi/v5/middleware"
@@ -61,38 +60,19 @@ func (a *api) Routes() *http.ServeMux {
 	r.HandleFunc("/auth/login", a.login)
 	r.HandleFunc("/auth/logout", a.logout)
 
-	r.Handle("/image/", middleware.GetSession(sessions)(middleware.Logger(http.HandlerFunc(a.uploadImage))))
-
-	apiRouter.Get("/cats", a.getCats)
-
-	apiRouter.Get("/chickens", a.getChickens)
-
-	apiRouter.Get("/dogs", a.getDogs)
-
-	apiRouter.Route("/animal", func(r chi.Router) {
-		r.Use(middleware.GetSession(sessions))
-		r.Post("/", a.insertAnimal)
-	})
-
-	apiRouter.Route("/animal/{id}", func(r chi.Router) {
-		r.Use(a.AnimalCtx)
-		r.Get("/", a.getAnimal)
-		r.Group(func(r chi.Router) {
-			r.Use(middleware.GetSession(sessions))
-			r.Put("/", a.updateAnimal)
-			r.Delete("/", a.deleteAnimal)
-			r.Post("/vaccinations/add", a.addVaccinations)
-			r.Post("/vaccinations/delete", a.deleteVaccination)
-		})
-	})
-
-	r.Mount("/api", apiRouter)
+	r.Handle("/api/image/", middleware.Logger(middleware.GetSession(sessions)(a.AnimalCtx(http.HandlerFunc(a.uploadImage)))))
+	r.Handle("/api/cats", middleware.Logger(http.HandlerFunc(a.getCats)))
+	r.Handle("/api/chickens", middleware.Logger(http.HandlerFunc(a.getChickens)))
+	r.Handle("/api/dogs", middleware.Logger(http.HandlerFunc(a.getDogs)))
+	r.Handle("/api/animal/", middleware.Logger(middleware.GetSession(sessions)(a.AnimalCtx(http.HandlerFunc(a.handleAnimal)))))
+	r.Handle("/api/vaccination/add/", middleware.Logger(middleware.GetSession(sessions)(http.HandlerFunc(a.addVaccinations))))
+	r.Handle("/api/vaccination/delete/", middleware.Logger(middleware.GetSession(sessions)(http.HandlerFunc(a.deleteVaccination))))
 
 	fs := http.FileServer(http.Dir("images"))
-	r.Handle("/images/*", http.StripPrefix("/images/", fs))
+	r.Handle("/images/", http.StripPrefix("/images/", fs))
 
 	if env == "production" || env == "dev" {
-		r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			workDir, _ := os.Getwd()
 			filesDir := filepath.Join(workDir, "dist")
 

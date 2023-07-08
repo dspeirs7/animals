@@ -129,7 +129,7 @@ func (m *mongoAnimalRepository) AddVaccinations(ctx context.Context, id string, 
 		return err
 	}
 
-	change := bson.M{"$push": bson.M{"animal.vaccinations": bson.M{"$each": vaccinations}}}
+	change := bson.M{"$push": bson.M{"vaccinations": bson.M{"$each": vaccinations}}}
 
 	if _, err := m.animalColl.UpdateByID(ctx, objectId, change); err != nil {
 		return err
@@ -144,7 +144,7 @@ func (m *mongoAnimalRepository) DeleteVaccination(ctx context.Context, id string
 		return err
 	}
 
-	change := bson.M{"$pull": bson.M{"animal.vaccinations": bson.M{"name": vaccination.Name, "dateGiven": vaccination.DateGiven, "dateNeeded": vaccination.DateNeeded}}}
+	change := bson.M{"$pull": bson.M{"vaccinations": bson.M{"name": vaccination.Name, "dateGiven": vaccination.DateGiven, "dateNeeded": vaccination.DateNeeded}}}
 
 	if _, err := m.animalColl.UpdateByID(ctx, objectId, change); err != nil {
 		return err

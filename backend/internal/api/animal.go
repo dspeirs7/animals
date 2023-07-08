@@ -7,170 +7,210 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
 	"github.com/dspeirs7/animals/internal/domain"
-	"github.com/go-chi/chi/v5"
 )
 
 func (a *api) getCats(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
+	switch r.Method {
+	case http.MethodGet:
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 
-	results, err := a.animalRepo.GetAllCats(ctx)
-	if err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
+		results, err := a.animalRepo.GetAllCats(ctx)
+		if err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(results)
+	case http.MethodOptions:
+		w.Header().Set("Allow", "GET, OPTIONS")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.Header().Set("Allow", "GET, OPTIONS")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
 }
 
 func (a *api) getChickens(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
+	switch r.Method {
+	case http.MethodGet:
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 
-	results, err := a.animalRepo.GetAllChickens(ctx)
-	if err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
+		results, err := a.animalRepo.GetAllChickens(ctx)
+		if err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(results)
+	case http.MethodOptions:
+		w.Header().Set("Allow", "GET, OPTIONS")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.Header().Set("Allow", "GET, OPTIONS")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
 }
 
 func (a *api) getDogs(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
+
+		results, err := a.animalRepo.GetAllDogs(ctx)
+		if err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(results)
+	case http.MethodOptions:
+		w.Header().Set("Allow", "GET, OPTIONS")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.Header().Set("Allow", "GET, OPTIONS")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	}
+}
+
+func (a *api) handleAnimal(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	results, err := a.animalRepo.GetAllDogs(ctx)
-	if err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
-}
-
-func (a *api) getAnimal(w http.ResponseWriter, r *http.Request) {
+	id := path.Base(r.URL.Path)
 	animal := r.Context().Value("animal").(*domain.Animal)
 
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(animal)
-}
+	switch r.Method {
+	case http.MethodGet:
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(animal)
+	case http.MethodPost:
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 
-func (a *api) insertAnimal(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
+		decoder := json.NewDecoder(r.Body)
+		var animal domain.Animal
 
-	decoder := json.NewDecoder(r.Body)
-	var animal domain.Animal
+		if err := decoder.Decode(&animal); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
 
-	if err := decoder.Decode(&animal); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
+		result, err := a.animalRepo.Insert(ctx, animal)
+		if err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(result)
+	case http.MethodPut:
+		decoder := json.NewDecoder(r.Body)
+		var animal domain.Animal
+
+		if err := decoder.Decode(&animal); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		if err := a.animalRepo.Update(ctx, id, animal); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	case http.MethodDelete:
+		if err := a.animalRepo.Delete(ctx, id); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+
+		if animal.ImageUrl != "" {
+			_ = os.Remove(fmt.Sprintf("./%s", animal.ImageUrl))
+		}
+
+		w.WriteHeader(http.StatusOK)
+	case http.MethodOptions:
+		w.Header().Set("Allow", "GET, PUT, POST, DELETE, OPTIONS")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.Header().Set("Allow", "GET, PUT, POST, DELETE, OPTIONS")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
-
-	result, err := a.animalRepo.Insert(ctx, animal)
-	if err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
-}
-
-func (a *api) updateAnimal(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
-
-	id := chi.URLParam(r, "id")
-
-	decoder := json.NewDecoder(r.Body)
-	var animal domain.Animal
-
-	if err := decoder.Decode(&animal); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	if err := a.animalRepo.Update(ctx, id, animal); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-}
-
-func (a *api) deleteAnimal(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
-
-	id := chi.URLParam(r, "id")
-
-	animal := r.Context().Value("animal").(*domain.Animal)
-
-	if err := a.animalRepo.Delete(ctx, id); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
-
-	if animal.ImageUrl != "" {
-		_ = os.Remove(fmt.Sprintf("./%s", animal.ImageUrl))
-	}
-
-	w.WriteHeader(http.StatusOK)
 }
 
 func (a *api) addVaccinations(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
+	switch r.Method {
+	case http.MethodPost:
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 
-	id := chi.URLParam(r, "id")
+		id := path.Base(r.URL.Path)
 
-	decoder := json.NewDecoder(r.Body)
+		decoder := json.NewDecoder(r.Body)
 
-	var vaccinations []domain.Vaccination
+		var vaccinations []domain.Vaccination
 
-	if err := decoder.Decode(&vaccinations); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
+		if err := decoder.Decode(&vaccinations); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
 
-	if err := a.animalRepo.AddVaccinations(ctx, id, vaccinations); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
+		if err := a.animalRepo.AddVaccinations(ctx, id, vaccinations); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+	case http.MethodOptions:
+		w.Header().Set("Allow", "POST, OPTIONS")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.Header().Set("Allow", "POST, OPTIONS")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 func (a *api) deleteVaccination(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithCancel(r.Context())
-	defer cancel()
+	switch r.Method {
+	case http.MethodPost:
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
 
-	id := chi.URLParam(r, "id")
+		id := path.Base(r.URL.Path)
 
-	decoder := json.NewDecoder(r.Body)
+		decoder := json.NewDecoder(r.Body)
 
-	var vaccination domain.Vaccination
+		var vaccination domain.Vaccination
 
-	if err := decoder.Decode(&vaccination); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
-	}
+		if err := decoder.Decode(&vaccination); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
 
-	if err := a.animalRepo.DeleteVaccination(ctx, id, vaccination); err != nil {
-		a.errorResponse(w, r, http.StatusInternalServerError, err)
-		return
+		if err := a.animalRepo.DeleteVaccination(ctx, id, vaccination); err != nil {
+			a.errorResponse(w, r, http.StatusInternalServerError, err)
+			return
+		}
+	case http.MethodOptions:
+		w.Header().Set("Allow", "POST, OPTIONS")
+		w.WriteHeader(http.StatusNoContent)
+	default:
+		w.Header().Set("Allow", "POST, OPTIONS")
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
@@ -178,7 +218,7 @@ func (a *api) uploadImage(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	id := chi.URLParam(r, "id")
+	id := path.Base(r.URL.Path)
 
 	r.ParseMultipartForm(10 << 20)
 
@@ -230,7 +270,7 @@ func (a *api) AnimalCtx(next http.Handler) http.Handler {
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
 
-		id := chi.URLParam(r, "id")
+		id := path.Base(r.URL.Path)
 
 		animal, err := a.animalRepo.GetById(ctx, id)
 		if err != nil {

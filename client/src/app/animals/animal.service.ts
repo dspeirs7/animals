@@ -59,7 +59,7 @@ export class AnimalService {
 
   addVaccinations(id: string, vaccinations: Vaccination[]) {
     return this.http.post(
-      `${environment.apiUrl}/animal/${id}/vaccinations/add`,
+      `${environment.apiUrl}/vaccination/add/${id}`,
       vaccinations,
       { withCredentials: true }
     );
@@ -67,7 +67,7 @@ export class AnimalService {
 
   deleteVaccination(id: string, vaccination: Vaccination) {
     return this.http.post(
-      `${environment.apiUrl}/animal/${id}/vaccinations/delete`,
+      `${environment.apiUrl}/vaccination/delete/${id}`,
       vaccination,
       { withCredentials: true }
     );
