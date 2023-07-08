@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  justify-content: center;
+  padding: 2em;
+}
+
+mat-card {
+  min-width: 400px;
+  display: flex;
+}
+
+mat-card-title {
+  text-align: center;
+}
+
+mat-card-content {
+  flex: 1;
+  padding-top: 2em;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 2em;
+  max-width: 500px;
+}

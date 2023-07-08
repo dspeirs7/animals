@@ -1,5 +1,12 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  DestroyRef,
+  OnInit,
+  Signal,
+  inject,
+  signal,
+} from '@angular/core';
+import { CommonModule, Location } from '@angular/common';
 import {
   RouterOutlet,
   RouterModule,
@@ -9,8 +16,9 @@ import {
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { Observable, filter, map } from 'rxjs';
+import { filter, map } from 'rxjs';
 import { AuthService } from './login/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
@@ -27,23 +35,40 @@ import { AuthService } from './login/auth.service';
   styleUrls: ['./app.component.scss'],
 })
 export class AppComponent implements OnInit {
-  url$: Observable<string>;
-  isLoggedIn$: Observable<boolean>;
+  isLoggedIn: Signal<boolean>;
+  showBack = signal<boolean>(false);
+  destroyRef = inject(DestroyRef);
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private location: Location,
+    private router: Router,
+    private authService: AuthService
+  ) {
+    this.router.events
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        filter((event) => event instanceof NavigationEnd)
+      )
+      .subscribe((event) => {
+        this.showBack.set(
+          !['/cats', '/chickens', '/dogs'].includes(
+            (event as NavigationEnd).urlAfterRedirects
+          )
+        );
+      });
+  }
 
   ngOnInit(): void {
-    this.url$ = this.router.events.pipe(
-      filter((event) => event instanceof NavigationEnd),
-      map((event) => (event as NavigationEnd).url)
-    );
-
-    this.isLoggedIn$ = this.authService.isLoggedIn();
+    this.isLoggedIn = this.authService.isLoggedIn();
   }
 
   logout() {
     this.authService.logout().subscribe(() => {
       this.router.navigate(['/chickens']);
     });
+  }
+
+  goBack() {
+    this.location.back();
   }
 }

@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>Add a {{ data.animalType }}</h2>
+<mat-dialog-content class="mat-typography">
+  <form class="form" [formGroup]="addAnimalForm">
+    <mat-form-field>
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" />
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Description</mat-label>
+      <textarea matInput formControlName="description"></textarea>
+    </mat-form-field>
+    <mat-form-field>
+      <mat-label>Breed</mat-label>
+      <mat-select formControlName="breed">
+        <ng-container [ngSwitch]="data.animalType">
+          <ng-container *ngSwitchCase="1">
+            <mat-option [value]="1">Russian Blue</mat-option>
+          </ng-container>
+          <ng-container *ngSwitchCase="2">
+            <mat-option [value]="10">Brahma</mat-option>
+            <mat-option [value]="11">Buff Orpington</mat-option>
+          </ng-container>
+          <ng-container *ngSwitchCase="3">
+            <mat-option [value]="20">Mix</mat-option>
+            <mat-option [value]="21">Foxhound</mat-option>
+          </ng-container>
+        </ng-container>
+      </mat-select>
+    </mat-form-field>
+    <input type="hidden" formControlName="type" />
+  </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancel</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [mat-dialog-close]="addAnimalForm.value"
+  >
+    Add
+  </button>
+</mat-dialog-actions>

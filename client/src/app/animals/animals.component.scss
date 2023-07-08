@@ -2,7 +2,7 @@
   padding: 2em;
 }
 
-.chicken-cards {
+.animal-cards {
   display: grid;
   grid-template: auto / 1fr 1fr 1fr;
   place-content: stretch;
@@ -23,7 +23,7 @@ h1 {
   align-items: center;
 }
 
-.chicken-link {
+.animal-link {
   cursor: pointer;
   font-weight: 500;
 }
@@ -37,7 +37,7 @@ h1 {
     padding: 1em;
   }
 
-  .chicken-cards {
+  .animal-cards {
     grid-template: auto / 1fr;
   }
 }

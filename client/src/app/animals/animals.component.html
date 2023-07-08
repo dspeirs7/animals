@@ -1,0 +1,22 @@
+<div class="container">
+  <div class="header">
+    <h1 *ngIf="animals().length > 1; else single">
+      Here are our {{ animalTypeName() }}s!
+    </h1>
+    <ng-template #single>
+      <h1>Here is our {{ animalTypeName() }}</h1>
+    </ng-template>
+    <button mat-fab (click)="addAnimal()" class="right" *ngIf="isLoggedIn()">
+      <mat-icon>add</mat-icon>
+    </button>
+  </div>
+  <div class="animal-cards">
+    <app-animal-card
+      *ngFor="let animal of animals()"
+      [animal]="animal"
+      [type]="animalTypeName()"
+      (onDelete)="onDelete($event)"
+      [showActions]="true"
+    />
+  </div>
+</div>

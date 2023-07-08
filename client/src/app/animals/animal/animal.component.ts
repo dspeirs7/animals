@@ -2,6 +2,7 @@ import {
   Component,
   DestroyRef,
   OnInit,
+  Signal,
   ViewChild,
   inject,
   signal,
@@ -25,11 +26,11 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { Observable, switchMap } from 'rxjs';
-import { Chicken, Vaccination } from '../chicken';
-import { ChickenService } from '../chicken.service';
-import { ChickenCardComponent } from '../chicken-card/chicken-card.component';
-import { AuthService } from '../login/auth.service';
+import { switchMap } from 'rxjs';
+import { AuthService } from '../../login/auth.service';
+import { Animal, Vaccination } from 'src/app/models/animal';
+import { AnimalService } from '../animal.service';
+import { AnimalCardComponent } from '../animal-card/animal-card.component';
 
 interface VaccinationForm {
   name: FormControl<string>;
@@ -38,7 +39,7 @@ interface VaccinationForm {
 }
 
 @Component({
-  selector: 'app-chicken',
+  selector: 'app-animal',
   standalone: true,
   imports: [
     CommonModule,
@@ -53,41 +54,41 @@ interface VaccinationForm {
     MatTableModule,
     MatSortModule,
     MatProgressBarModule,
-    ChickenCardComponent,
+    AnimalCardComponent,
   ],
-  templateUrl: './chicken.component.html',
-  styleUrls: ['./chicken.component.scss'],
+  templateUrl: './animal.component.html',
+  styleUrls: ['./animal.component.scss'],
 })
-export class ChickenComponent implements OnInit {
+export class AnimalComponent implements OnInit {
   @ViewChild(MatSort) sort: MatSort;
-  isLoggedIn$: Observable<boolean>;
+  isLoggedIn: Signal<boolean>;
   displayedColumns: string[] = ['name', 'dateGiven', 'dateNeeded', 'delete'];
   vaccinationsForm: FormGroup;
   uploadProgress: number;
-  chicken = signal<Chicken>(undefined as never as Chicken);
+  animal = signal<Animal>(undefined as never as Animal);
   today = new Date();
   destroyRef = inject(DestroyRef);
 
   constructor(
     private authService: AuthService,
-    private chickenService: ChickenService,
+    private animalService: AnimalService,
     private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
-    this.isLoggedIn$ = this.authService.isLoggedIn();
+    this.isLoggedIn = this.authService.isLoggedIn();
 
     this.route.paramMap
       .pipe(
         takeUntilDestroyed(this.destroyRef),
         switchMap((params) => {
-          const chickenId = params.get('chickenId');
+          const animalId = params.get('animalId');
 
-          return this.chickenService.getChicken(chickenId || '');
+          return this.animalService.getAnimal(animalId || '');
         })
       )
-      .subscribe((chicken) => {
-        this.chicken = signal(chicken);
+      .subscribe((animal) => {
+        this.animal.set(animal);
       });
 
     this.vaccinationsForm = new FormGroup({
@@ -104,7 +105,7 @@ export class ChickenComponent implements OnInit {
     const files = target.files as FileList;
 
     if (files.length) {
-      this.chickenService
+      this.animalService
         .addImage(id, files[0])
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe((event) => {
@@ -116,9 +117,8 @@ export class ChickenComponent implements OnInit {
 
           if (event.type === HttpEventType.Response) {
             this.uploadProgress = 0;
-            this.chicken.set({
-              ...this.chicken(),
-              imageUrl: (event.body as Partial<Chicken>).imageUrl!,
+            this.animal.mutate((animal) => {
+              animal.imageUrl = (event.body as Partial<Animal>).imageUrl!;
             });
           }
         });
@@ -139,39 +139,28 @@ export class ChickenComponent implements OnInit {
     this.vaccinations.removeAt(index);
   }
 
-  deleteVaccination(chicken: Chicken, vaccinationToDelete: Vaccination) {
-    const updatedChicken = {
-      ...chicken,
-      vaccinations: chicken.vaccinations.filter(
-        (vaccination) => vaccination !== vaccinationToDelete
-      ),
-    };
-
-    this.chickenService
-      .deleteVaccination(chicken.id, vaccinationToDelete)
+  deleteVaccination(animal: Animal, vaccinationToDelete: Vaccination) {
+    this.animalService
+      .deleteVaccination(animal.id, vaccinationToDelete)
       .subscribe(() => {
-        const updatedChicken = {
-          ...chicken,
-          vaccinations: chicken.vaccinations.filter(
-            (vaccination) => vaccination !== vaccinationToDelete
-          ),
-        };
-        this.chicken.set(updatedChicken);
+        this.animal.mutate((animal) => {
+          animal.vaccinations = animal.vaccinations.filter(
+            (vaccination) =>
+              vaccination.name !== vaccinationToDelete.name ||
+              vaccination.dateGiven !== vaccinationToDelete.dateGiven ||
+              vaccination.dateNeeded !== vaccinationToDelete.dateNeeded
+          );
+        });
       });
   }
 
-  addVaccinations(chicken: Chicken) {
-    this.chickenService
-      .addVaccinations(chicken.id, this.vaccinations.value)
+  addVaccinations(animal: Animal) {
+    this.animalService
+      .addVaccinations(animal.id, this.vaccinations.value)
       .subscribe(() => {
-        const updatedChicken = {
-          ...chicken,
-          vaccinations: [
-            ...(chicken.vaccinations || []),
-            ...this.vaccinations.value,
-          ],
-        };
-        this.chicken.set(updatedChicken);
+        this.animal.mutate((animal) => {
+          animal.vaccinations.push(this.vaccinations.value);
+        });
         this.vaccinations.clear();
       });
   }

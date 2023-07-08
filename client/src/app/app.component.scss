@@ -7,6 +7,12 @@ mat-toolbar {
 .brand {
   display: flex;
   align-items: center;
+  margin-right: 1em;
+}
+
+.buttons {
+  display: flex;
+  gap: 1em;
 }
 
 span:not(.flex) {

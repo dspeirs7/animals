@@ -1,0 +1,35 @@
+<mat-card class="animal-cards">
+  <mat-card-header>
+    <mat-card-title>{{ animal.name }}</mat-card-title>
+    <mat-card-subtitle>
+      <ng-container [ngSwitch]="animal.breed">
+        <span *ngSwitchCase="1">Russian Blue</span>
+        <span *ngSwitchCase="10">Brahma</span>
+        <span *ngSwitchCase="11">Buff Orpington</span>
+        <span *ngSwitchCase="20">Mix</span>
+        <span *ngSwitchCase="21">Foxhound</span>
+      </ng-container>
+    </mat-card-subtitle>
+  </mat-card-header>
+  <img
+    mat-card-image
+    [src]="('baseUrl' | env) + '/' + animal.imageUrl"
+    *ngIf="animal.imageUrl"
+  />
+  <mat-card-content>
+    <p>{{ animal.description }}</p>
+  </mat-card-content>
+  <mat-card-actions align="end" *ngIf="showActions">
+    <button
+      mat-button
+      color="warn"
+      (click)="deleteAnimal(animal)"
+      *ngIf="isLoggedIn()"
+    >
+      Delete
+    </button>
+    <button mat-button [routerLink]="['/', 'animal', animal.id]">
+      {{ isLoggedIn() ? "Edit" : "View" }}
+    </button>
+  </mat-card-actions>
+</mat-card>

@@ -8,7 +8,7 @@
   padding: 2em;
 }
 
-app-chicken-card {
+app-animal-card {
   grid-area: card;
 }
 
@@ -60,7 +60,7 @@ mat-form-field {
       / 1fr;
   }
 
-  app-chicken-card {
+  app-animal-card {
     margin-left: -0.5em;
   }
 

@@ -9,19 +9,20 @@ services:
     volumes:
       - api_data:/app/images
     depends_on:
-      - chicken-db
+      - animal-db
     links:
-      - chicken-db
+      - animal-db
     secrets:
+      - admin_password
       - db_string
 
-  chicken-db:
+  animal-db:
     image: mongo
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME_FILE: /run/secrets/db_user
       MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/db_password
-      MONGO_INITDB_DATABASE: 'chickens'
+      MONGO_INITDB_DATABASE: 'animals'
     ports:
       - '27017:27017'
     volumes:
@@ -35,6 +36,8 @@ volumes:
   api_data:
 
 secrets:
+  admin_password:
+    file: config/admin_password
   db_user:
     file: config/db_user
   db_password:

@@ -18,11 +18,16 @@ func GetDB(ctx context.Context) *mongo.Client {
 	logger := log.NewLogger("mongo")
 	defer logger.Sync()
 
-	var uri string
+	var adminPassword, uri string
 
 	dockerSecrets, _ := secrets.NewDockerSecrets("")
 
-	uri, err := dockerSecrets.Get("db_string")
+	adminPassword, err := dockerSecrets.Get("admin_password")
+	if err != nil {
+		adminPassword = os.Getenv("ADMIN_PASSWORD")
+	}
+
+	uri, err = dockerSecrets.Get("db_string")
 	if err != nil {
 		uri = os.Getenv("MONGODB_URI")
 	}
@@ -36,12 +41,12 @@ func GetDB(ctx context.Context) *mongo.Client {
 		logger.Panic("error connecting", zap.Error(err))
 	}
 
-	createAdminUser(client.Database("chickens").Collection("users"), logger)
+	createAdminUser(client.Database("animals").Collection("users"), adminPassword, logger)
 
 	return client
 }
 
-func createAdminUser(userColl *mongo.Collection, logger *zap.Logger) {
+func createAdminUser(userColl *mongo.Collection, adminPassword string, logger *zap.Logger) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -64,7 +69,7 @@ func createAdminUser(userColl *mongo.Collection, logger *zap.Logger) {
 		userColl.DeleteMany(ctx, nil)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(os.Getenv("ADMIN_PASSWORD")), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
 		cancel()
 		logger.Fatal("not able to hash password", zap.Error(err))
