@@ -1,6 +1,6 @@
 <mat-toolbar color="primary">
-  <div class="brand" (click)="goBack()">
-    <button mat-icon-button *ngIf="showBack()">
+  <div class="brand">
+    <button mat-icon-button *ngIf="showBack()" (click)="goBack()">
       <mat-icon>arrow_back</mat-icon>
     </button>
     <span>Animals</span>
