@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/ijustfool/docker-secrets v0.0.0-20191021062307-b25ea5007562
 	github.com/joho/godotenv v1.5.1
+	github.com/rs/cors v1.9.0
 	go.mongodb.org/mongo-driver v1.12.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.10.0

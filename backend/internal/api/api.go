@@ -11,18 +11,15 @@ import (
 	"github.com/dspeirs7/animals/internal/domain"
 	"github.com/dspeirs7/animals/internal/middleware"
 	"github.com/dspeirs7/animals/internal/repository"
-
-	// "github.com/go-chi/chi/v5"
-	// chim "github.com/go-chi/chi/v5/middleware"
-
+	"github.com/rs/cors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
 )
 
 type api struct {
-	mux        http.ServeMux
-	logger     *zap.Logger
-	dbClient   *mongo.Client
+	logger   *zap.Logger
+	dbClient *mongo.Client
+
 	animalRepo domain.AnimalRepository
 	userRepo   domain.UserRepository
 }
@@ -46,9 +43,19 @@ func NewAPI(ctx context.Context, logger *zap.Logger) *api {
 }
 
 func (a *api) Server(port int) *http.Server {
+	env := os.Getenv("ENV")
+
+	var handler http.Handler
+
+	if env != "production" && env == "dev" {
+		handler = cors.Default().Handler(a.Routes())
+	} else {
+		handler = a.Routes()
+	}
+
 	return &http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
-		Handler: a.Routes(),
+		Handler: handler,
 	}
 }
 
@@ -78,6 +85,7 @@ func (a *api) Routes() *http.ServeMux {
 
 			if _, err := os.Stat(filesDir + r.URL.Path); errors.Is(err, os.ErrNotExist) {
 				http.ServeFile(w, r, filepath.Join(filesDir, "index.html"))
+				return
 			}
 			http.ServeFile(w, r, filesDir+r.URL.Path)
 		})
