@@ -26,26 +26,6 @@ const (
 
 type AnimalBreed int
 
-// type CatBreed int
-
-// const (
-// 	RussianBlue CatBreed = 1
-// )
-
-// type ChickenBreed int
-
-// const (
-// 	Brahma        ChickenBreed = 10
-// 	BuffOrpington ChickenBreed = 11
-// )
-
-// type DogBreed int
-
-// const (
-// 	Mix      DogBreed = 20
-// 	FoxHound DogBreed = 21
-// )
-
 type Vaccination struct {
 	Name       string             `bson:"name,omitempty" json:"name,omitempty"`
 	DateGiven  primitive.DateTime `bson:"dateGiven,omitempty" json:"dateGiven,omitempty"`

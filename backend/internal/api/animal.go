@@ -267,6 +267,11 @@ func (a *api) uploadImage(w http.ResponseWriter, r *http.Request) {
 
 func (a *api) AnimalCtx(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/animal" {
+			next.ServeHTTP(w, r)
+			return
+		}
+
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
 

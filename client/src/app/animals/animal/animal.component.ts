@@ -147,8 +147,10 @@ export class AnimalComponent implements OnInit {
           animal.vaccinations = animal.vaccinations.filter(
             (vaccination) =>
               vaccination.name !== vaccinationToDelete.name ||
-              vaccination.dateGiven !== vaccinationToDelete.dateGiven ||
-              vaccination.dateNeeded !== vaccinationToDelete.dateNeeded
+              new Date(vaccination.dateGiven).getTime() !==
+                new Date(vaccinationToDelete.dateGiven).getTime() ||
+              new Date(vaccination.dateNeeded).getTime() !==
+                new Date(vaccinationToDelete.dateNeeded).getTime()
           );
         });
       });

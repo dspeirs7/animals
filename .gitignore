@@ -6,12 +6,7 @@
 /out-tsc
 /bazel-out
 .env
-/backend/backend
-
-# C#
-bin/
-obj/
-dist/
+/backend/animals
 
 # Node
 client/node_modules
@@ -43,6 +38,7 @@ client//coverage
 client//libpeerconnection.log
 client/testem.log
 client//typings
+client/dist
 backend/images
 
 # System files

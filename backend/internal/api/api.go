@@ -24,8 +24,6 @@ type api struct {
 	userRepo   domain.UserRepository
 }
 
-var sessions = make(map[string]domain.Session)
-
 func NewAPI(ctx context.Context, logger *zap.Logger) *api {
 	dbClient := repository.GetDB(ctx)
 	db := dbClient.Database("animals")
@@ -47,8 +45,11 @@ func (a *api) Server(port int) *http.Server {
 
 	var handler http.Handler
 
-	if env != "production" && env == "dev" {
-		handler = cors.Default().Handler(a.Routes())
+	if env != "production" && env != "dev" {
+		handler = cors.New(cors.Options{
+			AllowedOrigins:   []string{"http://localhost:4200"},
+			AllowCredentials: true,
+		}).Handler(a.Routes())
 	} else {
 		handler = a.Routes()
 	}
@@ -67,13 +68,13 @@ func (a *api) Routes() *http.ServeMux {
 	r.HandleFunc("/auth/login", a.login)
 	r.HandleFunc("/auth/logout", a.logout)
 
-	r.Handle("/api/image/", middleware.Logger(middleware.GetSession(sessions)(a.AnimalCtx(http.HandlerFunc(a.uploadImage)))))
-	r.Handle("/api/cats", middleware.Logger(http.HandlerFunc(a.getCats)))
-	r.Handle("/api/chickens", middleware.Logger(http.HandlerFunc(a.getChickens)))
-	r.Handle("/api/dogs", middleware.Logger(http.HandlerFunc(a.getDogs)))
-	r.Handle("/api/animal/", middleware.Logger(middleware.GetSession(sessions)(a.AnimalCtx(http.HandlerFunc(a.handleAnimal)))))
-	r.Handle("/api/vaccination/add/", middleware.Logger(middleware.GetSession(sessions)(http.HandlerFunc(a.addVaccinations))))
-	r.Handle("/api/vaccination/delete/", middleware.Logger(middleware.GetSession(sessions)(http.HandlerFunc(a.deleteVaccination))))
+	r.Handle("/api/image/", middleware.CommonMiddleware(a.AnimalCtx(http.HandlerFunc(a.uploadImage))))
+	r.Handle("/api/cats", middleware.CommonMiddleware(http.HandlerFunc(a.getCats)))
+	r.Handle("/api/chickens", middleware.CommonMiddleware(http.HandlerFunc(a.getChickens)))
+	r.Handle("/api/dogs", middleware.CommonMiddleware(http.HandlerFunc(a.getDogs)))
+	r.Handle("/api/animal/", middleware.CommonMiddleware((a.AnimalCtx(http.HandlerFunc(a.handleAnimal)))))
+	r.Handle("/api/vaccination/add/", middleware.CommonMiddleware(http.HandlerFunc(a.addVaccinations)))
+	r.Handle("/api/vaccination/delete/", middleware.CommonMiddleware(http.HandlerFunc(a.deleteVaccination)))
 
 	fs := http.FileServer(http.Dir("images"))
 	r.Handle("/images/", http.StripPrefix("/images/", fs))
