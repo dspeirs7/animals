@@ -71,7 +71,7 @@ func (m *mongoAnimalRepository) GetAllDogs(ctx context.Context) ([]*domain.Anima
 func (m *mongoAnimalRepository) GetById(ctx context.Context, id string) (*domain.Animal, error) {
 	objectId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return &domain.Animal{}, err
+		return nil, err
 	}
 
 	var result domain.Animal
@@ -85,7 +85,7 @@ func (m *mongoAnimalRepository) GetById(ctx context.Context, id string) (*domain
 func (m *mongoAnimalRepository) Insert(ctx context.Context, animal domain.Animal) (*domain.Animal, error) {
 	result, err := m.animalColl.InsertOne(ctx, animal)
 	if err != nil {
-		return &animal, err
+		return nil, err
 	}
 
 	animal.Id = result.InsertedID.(primitive.ObjectID)

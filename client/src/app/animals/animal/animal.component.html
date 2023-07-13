@@ -17,7 +17,7 @@
       *ngIf="uploadProgress"
     />
   </div>
-  <div class="vaccinations">
+  <div class="vaccinations" *ngIf="isLoggedIn() || animal.vaccinations.length">
     <h2>Vaccinations</h2>
     <mat-table
       [dataSource]="getDataSource(animal.vaccinations)"

@@ -35,9 +35,8 @@ func (a *api) login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		sessionId := domain.SessionId()
 		expiresAt := time.Now().Add(3600 * time.Second)
-		sessions[sessionId] = domain.Session{Username: admin.Username, Expiry: expiresAt}
+		sessionId := domain.SetSession(domain.Session{Username: admin.Username, Expiry: expiresAt})
 
 		http.SetCookie(w, &http.Cookie{Name: "session_token", Value: sessionId, Expires: expiresAt, Path: "/", SameSite: http.SameSiteLaxMode})
 		w.WriteHeader(http.StatusOK)
@@ -62,7 +61,7 @@ func (a *api) logout(w http.ResponseWriter, r *http.Request) {
 		}
 
 		sessionId := cookie.Value
-		delete(sessions, sessionId)
+		domain.RemoveSession(sessionId)
 
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
