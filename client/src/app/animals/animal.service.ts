@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { Animal, Vaccination } from '../models/animal';
@@ -8,7 +8,7 @@ import { Animal, Vaccination } from '../models/animal';
   providedIn: 'root',
 })
 export class AnimalService {
-  constructor(private http: HttpClient) {}
+  http = inject(HttpClient);
 
   getCats() {
     return this.http.get<Animal[]>(`${environment.apiUrl}/cats`);

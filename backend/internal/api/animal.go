@@ -183,9 +183,10 @@ func (a *api) uploadImage(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20)
 
 	animal := r.Context().Value("animal").(*domain.Animal)
-
 	if animal.ImageUrl != "" {
-		_ = os.Remove(fmt.Sprintf("./%s", animal.ImageUrl))
+		go func(imageUrl string) {
+			_ = os.Remove(fmt.Sprintf("./%s", imageUrl))
+		}(animal.ImageUrl)
 	}
 
 	file, handler, err := r.FormFile("image")

@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { filter, map } from 'rxjs';
 import { AuthService } from './login/auth.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
@@ -34,37 +34,28 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
 })
-export class AppComponent implements OnInit {
-  isLoggedIn: Signal<boolean>;
-  showBack = signal<boolean>(false);
+export class AppComponent {
+  location = inject(Location);
+  router = inject(Router);
+  authService = inject(AuthService);
+  isLoggedIn = this.authService.isLoggedIn();
   destroyRef = inject(DestroyRef);
-
-  constructor(
-    private location: Location,
-    private router: Router,
-    private authService: AuthService
-  ) {
-    this.router.events
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        filter((event) => event instanceof NavigationEnd)
-      )
-      .subscribe((event) => {
-        this.showBack.set(
+  showBack = toSignal(
+    this.router.events.pipe(
+      takeUntilDestroyed(this.destroyRef),
+      filter((event) => event instanceof NavigationEnd),
+      map(
+        (event) =>
           !['/cats', '/chickens', '/dogs'].includes(
             (event as NavigationEnd).urlAfterRedirects
           )
-        );
-      });
-  }
-
-  ngOnInit(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-  }
+      )
+    )
+  );
 
   logout() {
     this.authService.logout().subscribe(() => {
-      this.router.navigate(['/chickens']);
+      this.router.navigate(['/']);
     });
   }
 

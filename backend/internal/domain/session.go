@@ -7,16 +7,33 @@ import (
 	"time"
 )
 
+var sessions = make(map[string]Session)
+
 type Session struct {
 	Username string
 	Expiry   time.Time
+}
+
+func GetSession(id string) (Session, bool) {
+	session, ok := sessions[id]
+	return session, ok
+}
+
+func SetSession(session Session) string {
+	sessionId := sessionId()
+	sessions[sessionId] = session
+	return sessionId
+}
+
+func RemoveSession(sessionId string) {
+	delete(sessions, sessionId)
 }
 
 func (s *Session) IsExpired() bool {
 	return s.Expiry.Before(time.Now())
 }
 
-func SessionId() string {
+func sessionId() string {
 	b := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
 		return ""

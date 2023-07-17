@@ -1,11 +1,10 @@
 import {
   Component,
   EventEmitter,
-  Inject,
   Input,
-  OnInit,
   Output,
   Signal,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -36,17 +35,14 @@ import { AnimalService } from '../animal.service';
   styleUrls: ['./animal-card.component.scss'],
 })
 export class AnimalCardComponent {
+  authService = inject(AuthService);
+  animalService = inject(AnimalService);
+  matDialog = inject(MatDialog);
   @Input() animal: Animal;
   @Input() type: AnimalName;
   @Input() showActions: boolean = false;
   @Output() onDelete = new EventEmitter<string>();
   isLoggedIn: Signal<boolean>;
-
-  constructor(
-    private authService: AuthService,
-    private animalService: AnimalService,
-    private matDialog: MatDialog
-  ) {}
 
   ngOnInit(): void {
     this.isLoggedIn = this.authService.isLoggedIn();
@@ -93,5 +89,5 @@ interface DialogData {
   imports: [MatDialogModule, MatButtonModule],
 })
 export class DeleteAnimalDialog {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: DialogData) {}
+  data: DialogData = inject(MAT_DIALOG_DATA);
 }

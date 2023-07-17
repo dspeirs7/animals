@@ -1,6 +1,7 @@
 import {
   Component,
   DestroyRef,
+  Input,
   OnInit,
   Signal,
   ViewChild,
@@ -9,7 +10,6 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpEventType } from '@angular/common/http';
-import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormArray,
@@ -26,7 +26,6 @@ import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { switchMap } from 'rxjs';
 import { AuthService } from '../../login/auth.service';
 import { Animal, Vaccination } from 'src/app/models/animal';
 import { AnimalService } from '../animal.service';
@@ -61,7 +60,10 @@ interface VaccinationForm {
 })
 export class AnimalComponent implements OnInit {
   @ViewChild(MatSort) sort: MatSort;
-  isLoggedIn: Signal<boolean>;
+  @Input({ required: true }) animalId = '';
+  authService = inject(AuthService);
+  animalService = inject(AnimalService);
+  isLoggedIn = this.authService.isLoggedIn();
   displayedColumns: string[] = ['name', 'dateGiven', 'dateNeeded', 'delete'];
   vaccinationsForm: FormGroup;
   uploadProgress: number;
@@ -69,24 +71,10 @@ export class AnimalComponent implements OnInit {
   today = new Date();
   destroyRef = inject(DestroyRef);
 
-  constructor(
-    private authService: AuthService,
-    private animalService: AnimalService,
-    private route: ActivatedRoute
-  ) {}
-
   ngOnInit(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-
-    this.route.paramMap
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        switchMap((params) => {
-          const animalId = params.get('animalId');
-
-          return this.animalService.getAnimal(animalId || '');
-        })
-      )
+    this.animalService
+      .getAnimal(this.animalId || '')
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((animal) => {
         this.animal.set(animal);
       });
@@ -94,6 +82,10 @@ export class AnimalComponent implements OnInit {
     this.vaccinationsForm = new FormGroup({
       vaccinations: new FormArray([]),
     });
+
+    if (!this.isLoggedIn()) {
+      this.displayedColumns = ['name', 'dateGiven', 'dateNeeded'];
+    }
   }
 
   get vaccinations() {
@@ -147,8 +139,10 @@ export class AnimalComponent implements OnInit {
           animal.vaccinations = animal.vaccinations.filter(
             (vaccination) =>
               vaccination.name !== vaccinationToDelete.name ||
-              vaccination.dateGiven !== vaccinationToDelete.dateGiven ||
-              vaccination.dateNeeded !== vaccinationToDelete.dateNeeded
+              new Date(vaccination.dateGiven).getTime() !==
+                new Date(vaccinationToDelete.dateGiven).getTime() ||
+              new Date(vaccination.dateNeeded).getTime() !==
+                new Date(vaccinationToDelete.dateNeeded).getTime()
           );
         });
       });
@@ -159,7 +153,11 @@ export class AnimalComponent implements OnInit {
       .addVaccinations(animal.id, this.vaccinations.value)
       .subscribe(() => {
         this.animal.mutate((animal) => {
-          animal.vaccinations.push(this.vaccinations.value);
+          if (animal.vaccinations?.length) {
+            animal.vaccinations.push(...this.vaccinations.value);
+          } else {
+            animal.vaccinations = [...this.vaccinations.value];
+          }
         });
         this.vaccinations.clear();
       });

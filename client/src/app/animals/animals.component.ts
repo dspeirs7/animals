@@ -37,11 +37,15 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
   styleUrls: ['./animals.component.scss'],
 })
 export class AnimalsComponent implements OnInit {
-  isLoggedIn: Signal<boolean>;
+  route = inject(ActivatedRoute);
+  authService = inject(AuthService);
+  animalService = inject(AnimalService);
+  matDialog = inject(MatDialog);
+  router = inject(Router);
+  isLoggedIn = this.authService.isLoggedIn();
   animalType = signal<AnimalType>(1);
   animalTypeName = computed<AnimalName>(() => {
-    const type = this.animalType();
-    switch (type) {
+    switch (this.animalType()) {
       case 1:
         return 'Cat';
       case 2:
@@ -55,17 +59,7 @@ export class AnimalsComponent implements OnInit {
   animals = signal<Animal[]>([]);
   destroyRef = inject(DestroyRef);
 
-  constructor(
-    private route: ActivatedRoute,
-    private authService: AuthService,
-    private animalService: AnimalService,
-    private matDialog: MatDialog,
-    private router: Router
-  ) {}
-
   ngOnInit(): void {
-    this.isLoggedIn = this.authService.isLoggedIn();
-
     this.route.data
       .pipe(
         takeUntilDestroyed(this.destroyRef),

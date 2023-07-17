@@ -1,18 +1,19 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, signal, effect } from '@angular/core';
-import { tap } from 'rxjs';
+import { Injectable, signal, effect, inject } from '@angular/core';
+import { finalize, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
+  http = inject(HttpClient);
   private readonly SESSION_NAME = 'loggedIn';
   loggedIn = signal<boolean>(
     sessionStorage.getItem(this.SESSION_NAME) !== null
   );
 
-  constructor(private http: HttpClient) {
+  constructor() {
     effect(() => {
       if (this.loggedIn()) {
         sessionStorage.setItem(this.SESSION_NAME, 'true');
@@ -52,7 +53,7 @@ export class AuthService {
     return this.http
       .post(`${environment.baseUrl}/auth/logout`, {}, { withCredentials: true })
       .pipe(
-        tap(() => {
+        finalize(() => {
           this.loggedIn.set(false);
         })
       );

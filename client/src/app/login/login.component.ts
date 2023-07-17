@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
@@ -28,11 +28,12 @@ interface LoginForm {
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
+  authService = inject(AuthService);
+  router = inject(Router);
   loginForm = new FormGroup<LoginForm>({
     username: new FormControl('', { nonNullable: true }),
     password: new FormControl('', { nonNullable: true }),
   });
-  constructor(private authService: AuthService, private router: Router) {}
 
   login() {
     this.authService.login(this.loginForm.value).subscribe(() => {

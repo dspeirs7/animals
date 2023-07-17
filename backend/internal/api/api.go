@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/dspeirs7/animals/internal/domain"
 	"github.com/dspeirs7/animals/internal/middleware"
@@ -46,8 +47,10 @@ func NewAPI(ctx context.Context, logger *zap.Logger) *api {
 
 func (a *api) Server(port int) *http.Server {
 	return &http.Server{
-		Addr:    fmt.Sprintf(":%d", port),
-		Handler: a.Routes(),
+		Addr:         fmt.Sprintf(":%d", port),
+		Handler:      a.Routes(),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
 	}
 }
 
@@ -57,13 +60,16 @@ func (a *api) Routes() *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(chim.Logger)
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://*"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: true,
-		MaxAge:           300,
-	}))
+
+	if env != "production" && env != "dev" {
+		r.Use(cors.Handler(cors.Options{
+			AllowedOrigins:   []string{"http://localhost:4200"},
+			AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+			AllowCredentials: true,
+			MaxAge:           300,
+		}))
+	}
 
 	r.Post("/auth/login", a.login)
 	r.Post("/auth/logout", a.logout)
@@ -71,7 +77,7 @@ func (a *api) Routes() *chi.Mux {
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Route("/image/{id}", func(r chi.Router) {
-		r.Use(middleware.GetSession(sessions))
+		r.Use(middleware.GetSession)
 		r.Use(a.AnimalCtx)
 		r.Post("/", a.uploadImage)
 	})
@@ -83,7 +89,7 @@ func (a *api) Routes() *chi.Mux {
 	apiRouter.Get("/dogs", a.getDogs)
 
 	apiRouter.Route("/animal", func(r chi.Router) {
-		r.Use(middleware.GetSession(sessions))
+		r.Use(middleware.GetSession)
 		r.Post("/", a.insertAnimal)
 	})
 
@@ -91,7 +97,7 @@ func (a *api) Routes() *chi.Mux {
 		r.Use(a.AnimalCtx)
 		r.Get("/", a.getAnimal)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.GetSession(sessions))
+			r.Use(middleware.GetSession)
 			r.Put("/", a.updateAnimal)
 			r.Delete("/", a.deleteAnimal)
 			r.Post("/vaccinations/add", a.addVaccinations)

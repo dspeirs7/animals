@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormControl,
@@ -37,7 +37,7 @@ interface DialogData {
   styleUrls: ['./add-animal-dialog.component.scss'],
 })
 export class AddAnimalDialogComponent {
-  constructor(@Inject(MAT_DIALOG_DATA) public data: DialogData) {}
+  data: DialogData = inject(MAT_DIALOG_DATA);
 
   addAnimalForm: FormGroup;
 
