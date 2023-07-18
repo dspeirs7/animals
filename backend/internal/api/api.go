@@ -10,10 +10,9 @@ import (
 	"time"
 
 	"github.com/dspeirs7/animals/internal/domain"
-	"github.com/dspeirs7/animals/internal/middleware"
 	"github.com/dspeirs7/animals/internal/repository"
 	"github.com/go-chi/chi/v5"
-	chim "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/zap"
@@ -59,7 +58,7 @@ func (a *api) Routes() *chi.Mux {
 
 	r := chi.NewRouter()
 
-	r.Use(chim.Logger)
+	r.Use(middleware.Logger)
 
 	if env != "production" && env != "dev" {
 		r.Use(cors.Handler(cors.Options{
@@ -77,7 +76,7 @@ func (a *api) Routes() *chi.Mux {
 	apiRouter := chi.NewRouter()
 
 	apiRouter.Route("/image/{id}", func(r chi.Router) {
-		r.Use(middleware.GetSession)
+		r.Use(a.getSession)
 		r.Use(a.AnimalCtx)
 		r.Post("/", a.uploadImage)
 	})
@@ -89,7 +88,7 @@ func (a *api) Routes() *chi.Mux {
 	apiRouter.Get("/dogs", a.getDogs)
 
 	apiRouter.Route("/animal", func(r chi.Router) {
-		r.Use(middleware.GetSession)
+		r.Use(a.getSession)
 		r.Post("/", a.insertAnimal)
 	})
 
@@ -97,7 +96,7 @@ func (a *api) Routes() *chi.Mux {
 		r.Use(a.AnimalCtx)
 		r.Get("/", a.getAnimal)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.GetSession)
+			r.Use(a.getSession)
 			r.Put("/", a.updateAnimal)
 			r.Delete("/", a.deleteAnimal)
 			r.Post("/vaccinations/add", a.addVaccinations)
@@ -127,4 +126,31 @@ func (a *api) Routes() *chi.Mux {
 
 func (a *api) Disconnect(ctx context.Context) error {
 	return a.dbClient.Disconnect(ctx)
+}
+
+func (a *api) getSession(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("session_token")
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		session, ok := domain.GetSession(cookie.Value)
+		if !ok {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		if session.IsExpired() {
+			domain.RemoveSession(cookie.Value)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
