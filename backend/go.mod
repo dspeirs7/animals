@@ -3,10 +3,11 @@ module github.com/dspeirs7/animals
 go 1.20
 
 require (
-	github.com/go-chi/chi/v5 v5.0.8
-	github.com/go-chi/cors v1.2.1
+	github.com/dspeirs7/mongostore v0.0.0-20230720193652-e3dc084a9064
+	github.com/gorilla/mux v1.8.0
 	github.com/ijustfool/docker-secrets v0.0.0-20191021062307-b25ea5007562
 	github.com/joho/godotenv v1.5.1
+	github.com/rs/cors v1.9.0
 	go.mongodb.org/mongo-driver v1.12.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.10.0
@@ -14,6 +15,8 @@ require (
 
 require (
 	github.com/golang/snappy v0.0.1 // indirect
+	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/gorilla/sessions v1.2.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect

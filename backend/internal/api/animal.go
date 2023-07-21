@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/dspeirs7/animals/internal/domain"
-	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/mux"
 )
 
 func (a *api) getCats(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +94,7 @@ func (a *api) updateAnimal(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	id := chi.URLParam(r, "id")
+	id := mux.Vars(r)["id"]
 
 	decoder := json.NewDecoder(r.Body)
 	var animal domain.Animal
@@ -116,7 +116,7 @@ func (a *api) deleteAnimal(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	id := chi.URLParam(r, "id")
+	id := mux.Vars(r)["id"]
 
 	animal := r.Context().Value("animal").(*domain.Animal)
 
@@ -136,7 +136,7 @@ func (a *api) addVaccinations(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	id := chi.URLParam(r, "id")
+	id := mux.Vars(r)["id"]
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -157,7 +157,7 @@ func (a *api) deleteVaccination(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	id := chi.URLParam(r, "id")
+	id := mux.Vars(r)["id"]
 
 	decoder := json.NewDecoder(r.Body)
 
@@ -178,7 +178,7 @@ func (a *api) uploadImage(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(r.Context())
 	defer cancel()
 
-	id := chi.URLParam(r, "id")
+	id := mux.Vars(r)["id"]
 
 	r.ParseMultipartForm(10 << 20)
 
@@ -231,7 +231,11 @@ func (a *api) AnimalCtx(next http.Handler) http.Handler {
 		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 		defer cancel()
 
-		id := chi.URLParam(r, "id")
+		id, ok := mux.Vars(r)["id"]
+		if !ok {
+			next.ServeHTTP(w, r)
+			return
+		}
 
 		animal, err := a.animalRepo.GetById(ctx, id)
 		if err != nil {

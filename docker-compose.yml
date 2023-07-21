@@ -14,6 +14,7 @@ services:
       - animal-db
     secrets:
       - admin_password
+      - session_key
       - db_string
 
   animal-db:
@@ -38,6 +39,8 @@ volumes:
 secrets:
   admin_password:
     file: config/admin_password
+  session_key:
+    file: config/session_key
   db_user:
     file: config/db_user
   db_password:
